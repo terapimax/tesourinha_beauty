@@ -8,7 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "typecheck": "tsc -b"
+    "typecheck": "npm run sync-shared && tsc -b",
+    "sync-shared": "node scripts/sync-shared.mjs",
+    "predev": "npm run sync-shared",
+    "prebuild": "npm run sync-shared"
   },
   "dependencies": {
     "lucide-react": "^1.71.0",

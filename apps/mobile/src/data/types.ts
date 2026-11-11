@@ -1,7 +1,7 @@
-import type { ComponentProps } from 'react';
 import type { Ionicons } from '@expo/vector-icons';
 
-export type IconName = ComponentProps<typeof Ionicons>['name'];
+/** Nome de um ícone Ionicons (sem depender de React, para o painel web também usar estes tipos). */
+export type IconName = keyof typeof Ionicons.glyphMap;
 
 export type CategoryId = 'cabelo' | 'barba' | 'estetica' | 'unhas' | 'depilacao' | 'spa' | 'maquiagem';
 
