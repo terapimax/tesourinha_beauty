@@ -44,3 +44,14 @@ Próximos passos:
 2. Trocar o `AppProvider` (mobile) e o `StoreProvider` (admin) por chamadas ao Supabase.
 3. Login com Apple/Google, notificações de lembrete (Expo Notifications) e fotos reais via Storage.
 4. Pagamento no app (Pix / cartão) e avaliações após o atendimento.
+
+## Publicar no Vercel (demo)
+
+O repositório já tem `vercel.json` nas duas pastas. No Vercel, importe o repositório **duas vezes**, mudando só o *Root Directory*:
+
+| Projeto no Vercel | Root Directory | O que publica |
+| --- | --- | --- |
+| `tesourinha-app` | `apps/mobile` | versão web do app (centralizada com largura de celular) |
+| `tesourinha-admin` | `apps/admin` | painel administrativo |
+
+As demais configurações são lidas do `vercel.json`. Cada PR ganha um link de preview automático.
