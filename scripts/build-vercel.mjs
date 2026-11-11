@@ -1,8 +1,8 @@
-// Monta um único site com os três apps, para publicar num só projeto do Vercel:
+// Monta um único site com todos os apps, para publicar num só projeto do Vercel:
+//   /              -> landing page (apps/landing)
 //   /app           -> app do cliente (apps/mobile)
 //   /profissional  -> app do profissional (apps/pro)
 //   /admin         -> painel administrativo (apps/admin)
-//   /              -> redireciona para /app (ver vercel.json)
 import { execSync } from 'node:child_process'
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -23,6 +23,12 @@ function install(cwd) {
 rmSync(out, { recursive: true, force: true })
 mkdirSync(out, { recursive: true })
 
+// 0) Landing page, na raiz do site
+const landing = dir('apps/landing')
+install(landing)
+run('npm run build', landing)
+cpSync(`${landing}/dist`, out, { recursive: true })
+
 // 1) App do cliente, em /app
 const mobile = dir('apps/mobile')
 install(mobile)
@@ -42,4 +48,4 @@ install(admin)
 run('npm run build', admin, { VITE_BASE: '/admin/' })
 cpSync(`${admin}/dist`, `${out}/admin`, { recursive: true })
 
-console.log('\nSite montado em dist/ (/app, /profissional, /admin)')
+console.log('\nSite montado em dist/ (/, /app, /profissional, /admin)')

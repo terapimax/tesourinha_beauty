@@ -4,6 +4,7 @@
 
 | Pasta | O que é | Stack |
 | --- | --- | --- |
+| [`apps/landing`](apps/landing) | Landing page (presença online): história, serviços, agendamento, cursos | Vite + TypeScript + motor scroll-craft |
 | [`apps/mobile`](apps/mobile) | App do cliente (Android e iOS) | Expo (React Native) + TypeScript + Expo Router |
 | [`apps/pro`](apps/pro) | **Tesourinha Pro**: app do profissional (agenda, serviços, horários, ganhos) | Expo (React Native) + TypeScript + Expo Router |
 | [`apps/admin`](apps/admin) | Painel administrativo (web) | React + Vite + TypeScript |
@@ -55,14 +56,27 @@ Próximos passos:
 4. Login com Apple/Google, notificações (novo agendamento para o profissional, lembrete para o cliente) e fotos reais via Storage.
 5. Pagamento no app (Pix / cartão) e avaliações após o atendimento.
 
-## Publicar no Vercel (demo)
+## Publicar no Vercel
 
-O repositório já tem `vercel.json` nas três pastas. No Vercel, importe o repositório **uma vez para cada app**, mudando só o *Root Directory*:
+Um único projeto no Vercel, com o *Root Directory* vazio (a raiz do repositório), publica tudo junto. O `vercel.json` da raiz roda `scripts/build-vercel.mjs`, que monta:
 
-| Projeto no Vercel | Root Directory | O que publica |
-| --- | --- | --- |
-| `tesourinha-app` | `apps/mobile` | versão web do app do cliente (centralizada com largura de celular) |
-| `tesourinha-pro` | `apps/pro` | versão web do app do profissional |
-| `tesourinha-admin` | `apps/admin` | painel administrativo |
+| Caminho | O que abre |
+| --- | --- |
+| `/` | landing page (`apps/landing`) |
+| `/app` | versão web do app do cliente (`apps/mobile`) |
+| `/profissional` | versão web do app do profissional (`apps/pro`) |
+| `/admin` | painel administrativo (`apps/admin`) |
 
-As demais configurações são lidas do `vercel.json`. Cada PR ganha um link de preview automático.
+O agendamento montado na landing abre o app em `/app/book/<profissional>?serviceId=…&date=…&time=…`, com tudo já preenchido.
+
+Cada pasta ainda tem o próprio `vercel.json`, usado só se um app for importado sozinho. Cada PR ganha um link de preview automático.
+
+## Rodando a landing
+
+```bash
+cd apps/landing
+npm install
+npm run dev             # http://localhost:5173
+```
+
+Os serviços e profissionais vêm do catálogo do app (`apps/mobile/src/data/catalog.ts`); os cursos e contatos ficam em `apps/landing/src/content.ts`. A página usa a skill **scroll-craft** (instalada em `.claude/skills/scroll-craft`); o motor fica em `apps/landing/public/vendor` e não é editado. O plano da página está em `apps/landing/BRIEF.md`.

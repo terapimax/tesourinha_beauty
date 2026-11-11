@@ -20,13 +20,17 @@ function isTaken(proId: string, day: string, time: string) {
 }
 
 export default function Book() {
-  const { id, serviceId, reschedule } = useLocalSearchParams<{ id: string; serviceId?: string; reschedule?: string }>();
+  // date (YYYY-MM-DD) e time (HH:mm) chegam preenchidos quando o agendamento começa na landing page.
+  const { id, serviceId, reschedule, date, time: timeParam } = useLocalSearchParams<{
+    id: string; serviceId?: string; reschedule?: string; date?: string; time?: string;
+  }>();
   const pro = findProfessional(id);
   const { createBooking, cancelBooking, bookings } = useApp();
   const proServices = useMemo(() => services.filter((s) => pro?.serviceIds.includes(s.id)), [pro]);
   const [svc, setSvc] = useState(serviceId ?? proServices[0]?.id);
-  const [day, setDay] = useState<string | null>(null);
-  const [time, setTime] = useState<string | null>(null);
+  const validDay = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+  const [day, setDay] = useState<string | null>(validDay);
+  const [time, setTime] = useState<string | null>(validDay && timeParam && pro?.workingHours.includes(timeParam) ? timeParam : null);
 
   if (!pro) return null;
   const service = proServices.find((s) => s.id === svc);
