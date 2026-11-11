@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "node --version",
+  "buildCommand": "node scripts/build-vercel.mjs",
+  "outputDirectory": "dist",
+  "redirects": [{ "source": "/", "destination": "/app", "permanent": false }],
+  "rewrites": [
+    { "source": "/app/:path*", "destination": "/app/index.html" },
+    { "source": "/profissional/:path*", "destination": "/profissional/index.html" },
+    { "source": "/admin/:path*", "destination": "/admin/index.html" }
+  ]
+}

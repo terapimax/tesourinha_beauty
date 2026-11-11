@@ -35,7 +35,7 @@ export default function App() {
   return (
     <StoreProvider>
       <ToastProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <Routed />
         </BrowserRouter>
       </ToastProvider>
