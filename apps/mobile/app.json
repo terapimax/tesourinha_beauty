@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Tesourinha Beauty",
+    "slug": "tesourinha-beauty",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "tesourinha",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "br.org.tesourinha.beauty",
+      "supportsTablet": false,
+      "icon": "./assets/images/icon.png"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0B0C",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "br.org.tesourinha.beauty"
+    },
+    "web": {
+      "output": "single",
+      "favicon": "./assets/images/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B0B0C",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 140
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "backgroundColor": "#0B0B0C"
+  }
+}
