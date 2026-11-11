@@ -12,6 +12,10 @@ import Professionals from './pages/Professionals'
 import Services from './pages/Services'
 import UsersPage from './pages/Users'
 
+// BASE_URL vem como "/admin/"; sem a barra final, "/admin" também casa com o basename
+// (com a barra, abrir /admin deixava a tela em branco).
+const BASENAME = import.meta.env.BASE_URL.replace(/\/+$/, '') || '/'
+
 function Routed() {
   const { session } = useStore()
   if (!session) return <Login />
@@ -35,7 +39,7 @@ export default function App() {
   return (
     <StoreProvider>
       <ToastProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <BrowserRouter basename={BASENAME}>
           <Routed />
         </BrowserRouter>
       </ToastProvider>
