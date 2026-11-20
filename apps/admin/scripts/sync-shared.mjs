@@ -6,5 +6,6 @@ import { fileURLToPath } from 'node:url'
 const from = fileURLToPath(new URL('../../mobile/src/data/', import.meta.url))
 const to = fileURLToPath(new URL('../src/shared/', import.meta.url))
 mkdirSync(to, { recursive: true })
-cpSync(from, to, { recursive: true })
+// remote-catalog.ts depende do cliente Supabase do app mobile; o painel não precisa dele.
+cpSync(from, to, { recursive: true, filter: (src) => !src.endsWith('remote-catalog.ts') })
 console.log('catálogo compartilhado sincronizado em src/shared')

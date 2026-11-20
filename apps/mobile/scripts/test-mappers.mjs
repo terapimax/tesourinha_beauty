@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import { slotsBetween, toStartsAt, fromStartsAt, weekdayOf, toBooking, toProfessional } from '../src/data/mappers.ts';
+assert.deepEqual(slotsBetween('09:00:00','12:00:00',60), ['09:00','10:00','11:00']);
+assert.deepEqual(slotsBetween('09:00','10:30',30), ['09:00','09:30','10:00']);
+assert.equal(toStartsAt('2026-12-01','14:00'), '2026-12-01T17:00:00.000Z');
+assert.deepEqual(fromStartsAt('2026-12-01T17:00:00.000Z'), {date:'2026-12-01', time:'14:00'});
+assert.deepEqual(fromStartsAt('2026-12-02T01:30:00Z'), {date:'2026-12-01', time:'22:30'});
+assert.equal(weekdayOf('2026-12-01'), 2);
+assert.equal(toBooking({id:'x',professional_id:'p',service_id:'s',starts_at:'2026-12-01T17:00:00Z',status:'nao_compareceu',created_at:'c'}).status,'cancelado');
+const p = toProfessional({id:'1',name:'Ana',role:'r',rating:'4.9',reviews_count:2,slot_minutes:60,category_ids:['cabelo']},{serviceIds:['s'],hours:[{weekday:1,start_time:'09:00:00',end_time:'11:00:00',slot_minutes:60},{weekday:1,start_time:'13:00:00',end_time:'14:00:00',slot_minutes:60}],reviews:[]});
+assert.deepEqual(p.hoursByWeekday[1], ['09:00','10:00','13:00']);
+assert.equal(p.rating, 4.9);
+console.log('mappers ok');

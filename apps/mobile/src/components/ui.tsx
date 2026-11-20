@@ -254,7 +254,7 @@ export function Rating({ value, count, distanceKm, color = colors.textSecondary 
       <Ionicons name="star" size={13} color={colors.star} />
       <RNText style={[type.footnote, { color: colors.text, fontWeight: '600' }]}>{value.toFixed(1)}</RNText>
       {count !== undefined && <RNText style={[type.footnote, { color }]}>({count})</RNText>}
-      {distanceKm !== undefined && (
+      {!!distanceKm && (
         <>
           <Ionicons name="location-outline" size={13} color={color} style={{ marginLeft: 6 }} />
           <RNText style={[type.footnote, { color }]}>{distanceKm.toFixed(1).replace('.', ',')} km</RNText>

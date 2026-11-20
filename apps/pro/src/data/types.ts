@@ -13,6 +13,8 @@ export interface Category {
 
 export interface Service {
   id: string;
+  /** Identificador curto e estável (ex.: 's-barba'); links antigos usam o slug. */
+  slug?: string;
   categoryId: CategoryId;
   name: string;
   description: string;
@@ -31,6 +33,7 @@ export interface Review {
 
 export interface Professional {
   id: string;
+  slug?: string;
   name: string;
   role: string;
   categoryIds: CategoryId[];
@@ -45,6 +48,8 @@ export interface Professional {
   avatarColor: string;
   imageUrl?: string;
   workingHours: string[]; // ex.: ["09:00", "10:00", ...]
+  /** Horários por dia da semana (0 = domingo). Quando ausente, vale workingHours todos os dias. */
+  hoursByWeekday?: Record<number, string[]>;
   reviews: Review[];
 }
 
@@ -52,6 +57,7 @@ export type CourseLevel = 'Iniciante' | 'Intermediário' | 'Avançado';
 
 export interface Course {
   id: string;
+  slug?: string;
   title: string;
   subtitle: string;
   categoryId: CategoryId | 'gestao';
@@ -71,6 +77,7 @@ export type JobType = 'Tempo integral' | 'Meio período' | 'Freelance' | 'Comiss
 
 export interface Job {
   id: string;
+  slug?: string;
   title: string;
   company: string;
   location: string;

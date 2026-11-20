@@ -13,7 +13,7 @@ import { colors, radius, spacing } from '@/theme';
 export default function Auth() {
   const params = useLocalSearchParams<{ mode?: string }>();
   const [mode, setMode] = useState<'login' | 'signup'>(params.mode === 'login' ? 'login' : 'signup');
-  const { signIn } = useApp();
+  const { signIn, signInWithEmail, signUpWithEmail, remote } = useApp();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -21,6 +21,7 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   const isSignup = mode === 'signup';
 
@@ -32,7 +33,31 @@ export default function Auth() {
     }
     setError('');
     setLoading(true);
-    // MVP: autenticação local. Substituir por supabase.auth.signUp / signInWithPassword.
+
+    if (remote) {
+      void (async () => {
+        const res = isSignup
+          ? await signUpWithEmail({ name, email, phone, password })
+          : await signInWithEmail(email, password);
+        setLoading(false);
+        if (!res.ok) {
+          haptic.warning();
+          setError(res.error);
+          return;
+        }
+        if (isSignup && res.data && 'needsConfirmation' in res.data && res.data.needsConfirmation) {
+          setMode('login');
+          setInfo('Conta criada! Enviamos um e-mail de confirmação. Confirme e depois entre.');
+          return;
+        }
+        haptic.success();
+        router.dismissAll();
+        router.replace('/(tabs)');
+      })();
+      return;
+    }
+
+    // Modo demonstração: autenticação local, sem servidor.
     setTimeout(() => {
       signIn({
         name: isSignup ? name.trim() : email.split('@')[0]!.replace(/^\w/, (c) => c.toUpperCase()),
@@ -74,7 +99,7 @@ export default function Auth() {
           {(['signup', 'login'] as const).map((m) => (
             <Pressable
               key={m}
-              onPress={() => { haptic.selection(); setMode(m); setError(''); }}
+              onPress={() => { haptic.selection(); setMode(m); setError(''); setInfo(''); }}
               style={{ flex: 1, paddingVertical: 8, borderRadius: radius.sm + 1, alignItems: 'center', backgroundColor: mode === m ? colors.surface : 'transparent' }}>
               <Text variant="subhead" weight="600">{m === 'signup' ? 'Criar conta' : 'Entrar'}</Text>
             </Pressable>
@@ -87,6 +112,13 @@ export default function Auth() {
           {isSignup && <Field label="Celular" icon="call-outline" placeholder="(11) 90000-0000" value={phone} onChangeText={setPhone} keyboardType="phone-pad" textContentType="telephoneNumber" />}
           <Field label="Senha" icon="lock-closed-outline" placeholder="Mínimo de 6 caracteres" value={password} onChangeText={setPassword} secureTextEntry textContentType={isSignup ? 'newPassword' : 'password'} />
         </View>
+
+        {!!info && (
+          <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: spacing.lg, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.surface }}>
+            <Ionicons name="mail-outline" size={18} color={colors.brand} />
+            <Text variant="footnote" style={{ flex: 1 }}>{info}</Text>
+          </View>
+        )}
 
         {!!error && (
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: spacing.lg, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.dangerSoft }}>
@@ -103,6 +135,7 @@ export default function Auth() {
           </Pressable>
         )}
 
+        {!remote && (<>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginVertical: spacing.xxl }}>
           <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
           <Text variant="footnote" color={colors.textSecondary}>ou continue com</Text>
@@ -112,6 +145,7 @@ export default function Auth() {
           <Button title="Continuar com Apple" variant="dark" icon="logo-apple" onPress={social} />
           <Button title="Continuar com Google" variant="outline" icon="logo-google" onPress={social} />
         </View>
+        </>)}
 
         <Text variant="caption" color={colors.textSecondary} align="center" style={{ marginTop: spacing.xxl }}>
           Ao continuar você concorda com os Termos de Uso e a Política de Privacidade.

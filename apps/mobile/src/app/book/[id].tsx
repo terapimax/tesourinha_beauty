@@ -1,18 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native';
 
 import { MonthCalendar } from '@/components/calendar';
 import { BottomBar, Screen, ScreenHeader, Sheet } from '@/components/screen';
 import { Avatar, Button, Card, PressableScale, Rating, Text } from '@/components/ui';
-import { findProfessional, services } from '@/data/catalog';
+import { findProfessional, findService, services } from '@/data/catalog';
 import { formatDayLong, formatDuration, formatPrice } from '@/lib/format';
+import { weekdayOf } from '@/data/mappers';
 import { haptic } from '@/lib/haptics';
-import { useApp } from '@/store/app-store';
+import { useApp, type Availability } from '@/store/app-store';
 import { colors, radius, shadow, spacing } from '@/theme';
 
-/** Simula horários já ocupados de forma determinística por dia/profissional. */
+/** Modo demonstração: simula horários já ocupados de forma determinística por dia/profissional. */
 function isTaken(proId: string, day: string, time: string) {
   let h = 0;
   for (const ch of `${proId}${day}${time}`) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
@@ -25,14 +26,30 @@ export default function Book() {
     id: string; serviceId?: string; reschedule?: string; date?: string; time?: string;
   }>();
   const pro = findProfessional(id);
-  const { createBooking, cancelBooking, bookings } = useApp();
+  const { createBooking, cancelBooking, bookings, getAvailability, remote } = useApp();
   const proServices = useMemo(() => services.filter((s) => pro?.serviceIds.includes(s.id)), [pro]);
-  const [svc, setSvc] = useState(serviceId ?? proServices[0]?.id);
+  const [svc, setSvc] = useState(findService(serviceId)?.id ?? proServices[0]?.id);
   const validDay = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
   const [day, setDay] = useState<string | null>(validDay);
   const [time, setTime] = useState<string | null>(validDay && timeParam && pro?.workingHours.includes(timeParam) ? timeParam : null);
 
+  const [avail, setAvail] = useState<Availability | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const proId = pro?.id;
+
+  // Horários ocupados e folgas vêm do Supabase (no modo demonstração, são simulados).
+  useEffect(() => {
+    setAvail(null);
+    if (!proId || !day || !remote) return;
+    let cancelled = false;
+    void getAvailability(proId, day).then((a) => !cancelled && setAvail(a));
+    return () => { cancelled = true; };
+  }, [proId, day, remote, getAvailability]);
+
   if (!pro) return null;
+  const dayHours = day && pro.hoursByWeekday ? pro.hoursByWeekday[weekdayOf(day)] ?? [] : pro.workingHours;
+  const loadingSlots = remote && !!day && !avail;
   const service = proServices.find((s) => s.id === svc);
   const myTaken = new Set(bookings.filter((b) => b.professionalId === pro.id && b.date === day && b.status === 'confirmado').map((b) => b.time));
   const now = new Date();
@@ -43,12 +60,22 @@ export default function Book() {
     return new Date(y, m - 1, d, hh, mm) <= now;
   };
 
-  const confirmBooking = () => {
-    if (!service || !day || !time) return;
-    const b = createBooking({ professionalId: pro.id, serviceId: service.id, date: day, time });
+  const confirmBooking = async () => {
+    if (!service || !day || !time || saving) return;
+    setSaving(true);
+    setError('');
+    const res = await createBooking({ professionalId: pro.id, serviceId: service.id, date: day, time });
+    setSaving(false);
+    if (!res.ok) {
+      haptic.warning();
+      setError(res.error);
+      setTime(null);
+      if (remote) void getAvailability(pro.id, day).then(setAvail);
+      return;
+    }
     if (reschedule) cancelBooking(reschedule);
     haptic.success();
-    router.replace({ pathname: '/booking-success', params: { id: b.id } });
+    router.replace({ pathname: '/booking-success', params: { id: res.data.id } });
   };
 
   return (
@@ -95,10 +122,17 @@ export default function Book() {
               <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
               <Text variant="subhead" color={colors.textSecondary}>Selecione uma data para ver os horários livres.</Text>
             </View>
+          ) : loadingSlots ? (
+            <ActivityIndicator color={colors.brand} style={{ padding: spacing.xl }} />
+          ) : avail?.dayOff || dayHours.length === 0 ? (
+            <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', padding: spacing.lg, borderRadius: radius.lg, backgroundColor: colors.surface }}>
+              <Ionicons name="moon-outline" size={18} color={colors.textSecondary} />
+              <Text variant="subhead" color={colors.textSecondary}>Sem atendimento neste dia. Escolha outra data.</Text>
+            </View>
           ) : (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-              {pro.workingHours.map((t) => {
-                const disabled = isTaken(pro.id, day, t) || myTaken.has(t) || isPast(t);
+              {dayHours.map((t) => {
+                const disabled = (remote ? !!avail?.busy.has(t) : isTaken(pro.id, day, t)) || myTaken.has(t) || isPast(t);
                 const active = time === t;
                 return (
                   <Pressable
@@ -133,7 +167,8 @@ export default function Book() {
             </View>
           </View>
         ) : null}
-        <Button title="Confirmar agendamento" disabled={!day || !time || !service} onPress={confirmBooking} />
+        {!!error && <Text variant="footnote" color={colors.danger} style={{ marginBottom: spacing.sm }}>{error}</Text>}
+        <Button title="Confirmar agendamento" disabled={!day || !time || !service} loading={saving} onPress={confirmBooking} />
       </BottomBar>
     </Screen>
   );

@@ -215,7 +215,11 @@ export const association = {
   ],
 };
 
-export const findProfessional = (id: string) => professionals.find((p) => p.id === id);
-export const findService = (id: string) => services.find((s) => s.id === id);
-export const findCourse = (id: string) => courses.find((c) => c.id === id);
-export const findJob = (id: string) => jobs.find((j) => j.id === id);
+/** Aceita o id (uuid, no Supabase) ou o slug (ex.: 'p-ana', usado pelos links antigos da landing page). */
+const byIdOrSlug = <T extends { id: string; slug?: string }>(list: T[], key: string | undefined) =>
+  key ? list.find((x) => x.id === key || x.slug === key) : undefined;
+
+export const findProfessional = (id?: string) => byIdOrSlug(professionals, id);
+export const findService = (id?: string) => byIdOrSlug(services, id);
+export const findCourse = (id?: string) => byIdOrSlug(courses, id);
+export const findJob = (id?: string) => byIdOrSlug(jobs, id);
